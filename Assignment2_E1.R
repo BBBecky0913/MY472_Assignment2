@@ -4,7 +4,7 @@ library(dplyr, warn.conflicts = FALSE)
 options(dplyr.summarise.inform = FALSE)
 
 # defining a function with a single argument `data` that performs transformations on it
-data_transform <- function(data){
+data_transform <- function(data, mode){
   
   # convert data to tibble and drop NA value
   data <- data %>% as_tibble() %>% drop_na()
@@ -12,9 +12,38 @@ data_transform <- function(data){
   last_col <-  ncol(data) # in all given dataset in repo, the last column is for the response variable
   last_col_name <- names(data)[last_col]
   # take the absolute value and then the natural logarithm of y
-  data <- data %>% mutate(y_log = log(abs(data[[last_col]]))) 
+  if (mode == "log") {
+    data <- data %>% mutate(y_log = log(abs(data[[last_col]])))  # notice: data[,-1] means all the col except first col
+    return(data)
+    
+    # sort in ascending order by y value
+  }  else if (mode == "arrange") {
+    data <- data %>% arrange(data[[last_col]])
+    return(data)
+    
+    # summarize Y by categories if the dataset has categorical variables
+  }  else if (mode == "grouping") {
+    
+    # find all the categorical variables and summarize y
+    col_names <- colnames(data) 
+    col_factors <- c()
+    # print(col_names)
+    for (col_name in col_names) {
+      if (is.factor(data[[col_name]]) | is.character(data[[col_name]])) {  # Determine whether a column is a categorical variable
+        col_factors <- c(col_factors, col_name)
+      }
+    }
+    data <- data %>% 
+      group_by(across(all_of(col_factors))) %>% 
+      summarise(
+        Count = n(),
+        y_sum = sum(!!sym(last_col_name), na.rm = TRUE),  # !!sym(): Convert strings to symbols and reference them into variables
+        y_mean = y_sum / Count,
+        y_min = min(!!sym(last_col_name), na.rm = TRUE),
+        y_max = max(!!sym(last_col_name), na.rm = TRUE))
+    return(data)
+  } else {
+    print("mode not found")
+  }
   
-  return(data)
 }
-
-data_transform(swiss)
