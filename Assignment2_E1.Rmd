@@ -1,0 +1,95 @@
+---
+title: "Assignment2_E1"
+author: "Minwei Kong 202320860"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+ # global options for the entire .Rmd
+knitr::opts_chunk$set(echo = TRUE)
+
+# load in libraries
+library(tidyverse)
+library(magrittr)
+library(dplyr, warn.conflicts = FALSE)
+# Suppress summarise info
+options(dplyr.summarise.inform = FALSE)
+```
+
+
+```{r import data, echo=FALSE}
+# import the datasets in repo which are from R built-in datasets but processed with some column sequence swap
+swiss <- read.csv("./Assignment2_repo/data/swiss.csv")
+CO2 <- read.csv("./Assignment2_repo/data/CO2.csv")
+InsectSprays <- read.csv("./Assignment2_repo/data/InsectSprays.csv")
+head(swiss)
+head(CO2)
+head(InsectSprays)
+```
+
+```{r function, echo=TRUE}
+
+# defining a function with a single argument `data` that performs transformations on it
+data_transform <- function(data, mode){
+  
+  # convert data to tibble and drop NA value
+  data <- data %>% as_tibble() %>% drop_na()
+  
+  last_col <-  ncol(data) # in all given dataset in repo, the last column is for the response variable
+  last_col_name <- names(data)[last_col]
+  # take the absolute value and then the natural logarithm of y
+  if (mode == "log") {
+    data <- data %>% mutate(y_log = log(abs(data[[last_col]])))  # notice: data[,-1] means all the col except first col
+    return(data)
+    
+  # sort in ascending order by y value
+  }  else if (mode == "arrange") {
+        data <- data %>% arrange(data[[last_col]])
+        return(data)
+        
+  # summarize Y by categories if the dataset has categorical variables
+  }  else if (mode == "grouping") {
+    
+    # find all the categorical variables and summarize y
+      col_names <- colnames(data) 
+      col_factors <- c()
+      # print(col_names)
+      for (col_name in col_names) {
+        if (is.factor(data[[col_name]]) | is.character(data[[col_name]])) {  # Determine whether a column is a categorical variable
+          col_factors <- c(col_factors, col_name)
+        }
+      }
+      data <- data %>% 
+      group_by(across(all_of(col_factors))) %>% 
+      summarise(
+                Count = n(),
+                y_sum = sum(!!sym(last_col_name), na.rm = TRUE),  # !!sym(): Convert strings to symbols and reference them into variables
+                y_mean = y_sum / Count,
+                y_min = min(!!sym(last_col_name), na.rm = TRUE),
+                y_max = max(!!sym(last_col_name), na.rm = TRUE))
+        return(data)
+    } else {
+      print("mode not found")
+    }
+  
+}
+```
+
+```{r demonstration, echo=TRUE}
+# show the results according to different value passed to the second argument
+data_transform(CO2,"log")
+data_transform(swiss,"arrange")
+data_transform(CO2,"grouping")
+data_transform(InsectSprays,"grouping")
+data_transform(CO2,"try")
+```
+
+## Appendix: All code in this assignment
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE} 
+# this chunk generates the complete code appendix. 
+# eval=FALSE tells R not to run (``evaluate'') the code here (it was already run before).
+```
+
+
