@@ -20,9 +20,9 @@ options(dplyr.summarise.inform = FALSE)
 
 ```{r import data, echo=FALSE}
 # import the datasets in repo which are from R built-in datasets but processed with some column sequence swap
-swiss <- read.csv("./Assignment2_repo/data/swiss.csv")
-CO2 <- read.csv("./Assignment2_repo/data/CO2.csv")
-InsectSprays <- read.csv("./Assignment2_repo/data/InsectSprays.csv")
+swiss <- read.csv("./data/swiss.csv")
+CO2 <- read.csv("./data/CO2.csv")
+InsectSprays <- read.csv("./data/InsectSprays.csv")
 head(swiss)
 head(CO2)
 head(InsectSprays)
@@ -91,5 +91,3 @@ data_transform(CO2,"try")
 # this chunk generates the complete code appendix. 
 # eval=FALSE tells R not to run (``evaluate'') the code here (it was already run before).
 ```
-
-
