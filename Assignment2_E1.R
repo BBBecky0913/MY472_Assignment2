@@ -16,5 +16,3 @@ data_transform <- function(data){
   
   return(data)
 }
-
-data_transform(swiss)
